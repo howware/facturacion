@@ -1,0 +1,32 @@
+{
+  "seed_version": "1",
+  "predicates": [
+    {"id": "client_template", "value_type": "text", "cardinality": "one", "label": "Invoice template", "description": "Name of the mxsat template used to invoice this client"},
+    {"id": "client_match", "value_type": "text", "cardinality": "one", "label": "Deposit rule", "description": "How the owner recognizes this client's deposits: type=<tx_type>[;account=<account key>][;amount=<cents>]"},
+    {"id": "draft_id", "value_type": "text", "cardinality": "one", "label": "Draft id", "description": "mxsat draft id (template-SeriesFolio)"},
+    {"id": "cfdi_id", "value_type": "text", "cardinality": "one", "label": "CFDI id", "description": "mxsat pseudonym of the stamped invoice (from its UUID)"},
+    {"id": "invoice_total", "value_type": "integer", "unit": "MXN_cent", "cardinality": "one", "label": "Invoice total", "description": "Invoice total in cents"},
+    {"id": "invoice_subtotal", "value_type": "integer", "unit": "MXN_cent", "cardinality": "one", "label": "Invoice subtotal", "description": "Invoice subtotal in cents"},
+    {"id": "invoice_transferred", "value_type": "integer", "unit": "MXN_cent", "cardinality": "one", "label": "Taxes transferred", "description": "Transferred taxes on the invoice, in cents"},
+    {"id": "invoice_withheld", "value_type": "integer", "unit": "MXN_cent", "cardinality": "one", "label": "Taxes withheld", "description": "Withheld taxes on the invoice, in cents"},
+    {"id": "invoice_series", "value_type": "text", "cardinality": "one", "label": "Series", "description": "Invoice series"},
+    {"id": "invoice_folio", "value_type": "text", "cardinality": "one", "label": "Folio", "description": "Invoice folio"},
+    {"id": "invoice_period", "value_type": "text", "cardinality": "one", "label": "Period invoiced", "description": "YYYY-MM named in the invoice description, when there is one"},
+    {"id": "invoice_date", "value_type": "datetime", "cardinality": "one", "label": "Invoice date", "description": "Date of the invoice (planned for a draft, actual once issued), at noon"},
+    {"id": "vat_treatment", "value_type": "text", "cardinality": "one", "label": "VAT treatment", "description": "rate_0, rate_8, rate_16, exempt or mixed, read from the invoice"},
+    {"id": "payment_form", "value_type": "text", "cardinality": "one", "label": "Payment form", "description": "SAT FormaPago code on the invoice"},
+    {"id": "capture_sheet", "value_type": "text", "cardinality": "one", "label": "Capture sheet", "description": "Path of the local capture sheet the owner opens; the agent never reads it"},
+    {"id": "accepted_with_differences", "value_type": "boolean", "cardinality": "one", "label": "Accepted with differences", "description": "The owner kept an invoice that differs from its draft"},
+    {"id": "reason_text", "value_type": "text", "cardinality": "one", "label": "Reason", "description": "Why, in the owner's words"},
+    {"id": "obligation_kind", "value_type": "text", "cardinality": "one", "label": "Obligation kind", "description": "sat_declaration, accountant_fee or other"},
+    {"id": "obligation_label", "value_type": "text", "cardinality": "one", "label": "Obligation", "description": "What is owed, in the owner's words"},
+    {"id": "obligation_amount", "value_type": "integer", "unit": "MXN_cent", "cardinality": "one", "label": "Amount owed", "description": "Amount to pay, in cents"},
+    {"id": "obligation_due", "value_type": "datetime", "cardinality": "one", "label": "Due", "description": "Last day to pay, at noon"},
+    {"id": "obligation_period", "value_type": "text", "cardinality": "one", "label": "Period", "description": "YYYY-MM the obligation is for"},
+    {"id": "receipt_id", "value_type": "text", "cardinality": "one", "label": "Receipt id", "description": "mxsat pseudonym of the declaration receipt"},
+    {"id": "capture_line_valid_until", "value_type": "datetime", "cardinality": "one", "label": "Capture line valid until", "description": "Last day the capture line can be used, at noon"},
+    {"id": "for_deposit", "value_type": "any", "cardinality": "one", "label": "For deposit", "description": "Bank transaction this invoice or decision is about"},
+    {"id": "for_client", "value_type": "entity", "cardinality": "one", "label": "For client", "description": "Client the invoice is for"},
+    {"id": "paid_with", "value_type": "any", "cardinality": "one", "label": "Paid with", "description": "Bank transaction that paid an obligation"}
+  ]
+}

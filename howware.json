@@ -1,0 +1,42 @@
+{
+  "howware": "0.2",
+  "name": "facturacion",
+  "version": "0.1.0",
+  "description": "Invoicing for Mexican freelancers without an app: the deposits in your bank statements become the invoices to issue, checked against what was stamped, through the monthly declaration and its payment.",
+  "license": "Apache-2.0",
+  "languages": ["en", "es"],
+  "hosts": [],
+  "skill": "skill/facturacion",
+  "adapters": [
+    {"name": "project-memory", "version": ">=0.3.0", "url": "https://github.com/howware/long-term-memory-for-AI"},
+    {"name": "mxsat", "version": ">=0.1.0", "url": "https://github.com/howware/mx-sat-documents"},
+    {"name": "mxbank", "version": ">=0.2.0", "url": "https://github.com/howware/mx-bank-statement-reader"}
+  ],
+  "requires": [
+    {"name": "finanzas-personales", "version": ">=0.2.2", "url": "https://github.com/howware/finanzas-personales"}
+  ],
+  "tools": [{"name": "facturacion.py", "network": false, "dependencies": []}],
+  "memory": {"kind": "local-sqlite", "append_only": true, "seed_version": "1"},
+  "privacy": {
+    "stays_local": [
+      "invoice XML files, declaration receipts (PDF) and bank statements",
+      "RFCs, names, postal codes, foreign tax ids, property tax accounts, UUIDs and capture lines",
+      "the mxsat private store: templates and capture sheets with the real invoice data",
+      "the memory file (the agent queries it and sees the answers)"
+    ],
+    "agent_sees": [
+      "deposits: date, amount, type and account pseudonym",
+      "invoices: series and folio, dates, amounts, SAT codes, VAT treatment, pseudonyms instead of people",
+      "declarations: period, amounts and due dates",
+      "the owner's client labels and rules",
+      "everything the owner types in the conversation"
+    ],
+    "cannot_guarantee": [
+      "automatic anonymization is not infallible",
+      "not opening documents or the private store is an instruction to the agent; host deny permissions reduce the risk but do not remove it",
+      "what the agent sees leaves the computer for the AI provider, under its terms",
+      "the memory file and the private store are not encrypted",
+      "the tax treatment comes from the owner's past invoices; this is not tax advice"
+    ]
+  }
+}
