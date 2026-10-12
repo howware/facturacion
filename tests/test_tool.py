@@ -144,6 +144,43 @@ class WorkflowTest(unittest.TestCase):
         twice = self.tool("draft", "--tx", "TX_rent_sep", "--by", BY, code=2)
         self.assertIn("already invoiced", twice["error"]["message"])
 
+    def test_rent_period_comes_from_the_arrendamiento_howware(self):
+        """Shared memory: arrendamiento applied the September deposit to September's rent (paid late), so the
+        invoice is for September even though the template's rule would say the next month."""
+        reading = {"source": {"type": "import", "content": "arrendamiento applied a payment", "provided_by": BY,
+                              "captured_at": "now"}, "performed_by": BY,
+                   "predicates": [{"id": "rent_period", "value_type": "text", "cardinality": "one"},
+                                  {"id": "paid_with", "value_type": "any", "cardinality": "one"}],
+                   "events": [{"key": "RENT_sep", "type": "rent_applied", "occurred_at": "2026-09-19T12:00:00-07:00",
+                               "attributes": {"rent_period": "2026-09"},
+                               "links": [{"predicate": "paid_with", "event": "TX_rent_sep"}]}]}
+        subprocess.run([sys.executable, str(HELPER), "--db", self.db, "write"], input=json.dumps(reading),
+                       check=True, capture_output=True, text=True, encoding="utf-8")
+        d = self.tool("draft", "--tx", "TX_rent_sep", "--date", "2026-09-30", "--by", BY)["draft"]
+        self.assertEqual(d["period"], "2026-09")
+        override = self.tool("draft", "--tx", "TX_rent_sep", "--date", "2026-09-30", "--period", "2026-10",
+                             "--replace", "--by", BY)["draft"]
+        self.assertEqual(override["period"], "2026-10")
+
+    def test_import_statements_without_another_howware(self):
+        statement = str(ROOT / "tests" / "fixtures" / "bbva_debit.json")
+        first = self.tool("import", statement, "--by", BY)["statements"][0]
+        self.assertEqual((first["transactions_new"], first["transactions_existing"]), (7, 0))
+        again = self.tool("import", statement, "--by", BY)["statements"][0]
+        self.assertEqual((again["transactions_new"], again["transactions_existing"]), (0, 7))
+        deposits = self.tool("pending", "--month", "2026-09", "--all")["deposits"]
+        self.assertTrue(any(d["tx"].startswith("TX_") and d["tx"] not in syn.KEYS for d in deposits))
+
+    def test_records_module_is_mxbanks_copy(self):
+        found = [p / "src" / "mxbank" / "records.py" for p in (ROOT.parent / "mx-bank-statement-reader",
+                                                              ROOT / "mx-bank-statement-reader")]
+        original = next((p for p in found if p.is_file()), None)
+        if not original:
+            self.skipTest("the mxbank repository is not checked out (../mx-bank-statement-reader)")
+        self.assertEqual((TOOL.parent / "mxbank_records.py").read_text(encoding="utf-8").splitlines(),
+                         original.read_text(encoding="utf-8").splitlines(),
+                         "Copy src/mxbank/records.py from mxbank to mxbank_records.py again")
+
     def test_verify_reports_differences_and_keeps_the_draft_open(self):
         self.tool("draft", "--tx", "TX_exp_sep_b", "--date", "2026-09-30", "--by", BY)
         xml = self.stamp("export-A152", "0F8D2C1A-4444-4A2B-9C3D-000000000004", comprobante={"FormaPago": "99"})

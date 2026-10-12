@@ -12,13 +12,13 @@ deposit reaches the bank → invoice drafted → owner captures it in the SAT po
 → month closed for the accountant → declaration receipt → payment found in the next statement
 ```
 
-It runs in the owner's finances folder, on the same memory as the
-[finanzas-personales](https://github.com/howware/finanzas-personales) howware, which imports the bank
-statements. Answer in the owner's language.
+It runs in the owner's folder, on its memory. It may share that memory with other howwares
+([finanzas-personales](https://github.com/howware/finanzas-personales), arrendamiento): a statement imported by
+any of them is stored once, the same way, and each adds its own reading. Answer in the owner's language.
 
 `FAC` = `python "<this skill's folder>/scripts/facturacion.py"`; `MXSAT` = the `mxsat` command (the SAT
 documents adapter); `MEM` = the project-memory helper. Run them from the owner's folder. All output is JSON.
-Requires project-memory 0.3.0+, mxsat 0.1.0+ and bank statements imported by finanzas-personales.
+Requires project-memory 0.3.0+, mxsat 0.1.0+ and mxbank 0.2.0+ (for the statements).
 
 ## Rules (non-negotiable)
 
@@ -63,7 +63,7 @@ a bug to report). Errors arrive as `{"ok": false, "error": {"code", "message"}}`
 
 1. `MEM brief --format text` (or the one the session hook injected): the owner's rules appear as preferences.
 2. The first time in a folder (or after an update), run `FAC setup --by person:<id>`: it is idempotent and checks
-   the adapters. If it reports no deposits, the statements must be imported first (finanzas-personales).
+   the adapters. If it reports no deposits, import the statements (workflow 0).
 3. `FAC brief`. Open with, only if non-empty, in this order:
    - **Obligations due or overdue** (declaration, accountant), with the due date.
    - **Drafts to capture**: "invoice A152 (renta, $5,000.00) is waiting for you to capture it in the portal".
@@ -71,6 +71,14 @@ a bug to report). Errors arrive as `{"ok": false, "error": {"code", "message"}}`
 4. Keep it short. If nothing is pending, say so in one line.
 
 ## Workflows
+
+### 0. Import the bank statements
+
+1. Extract each statement with the same key as always: `mxbank extract <pdf> --pseudonym-key-env MXBANK_KEY
+   --out <file>.json` (never open the PDF). Then `FAC import <file>.json … --by <owner>`.
+2. Report per statement: account, period, new and already-known transactions. A statement another howware already
+   imported shows only known transactions; that is expected, nothing is duplicated.
+3. If `reconciled` is not true, say the figures may be incomplete.
 
 ### 1. First time: clients from real invoices
 
@@ -99,6 +107,9 @@ A client is how the owner recognizes a deposit plus how they invoice it. Both co
 ### 3. Prepare the invoice
 
 1. `FAC draft --tx <deposit> [--date YYYY-MM-DD] --by <owner>`. Never pass an amount; there is no such option.
+   The period comes from the template's rule, unless the arrendamiento howware shares the memory and applied the
+   deposit to a month of rent: then the invoice is for that month (a rent paid early goes to the next month, one
+   paid late to its own). If the deposit pays two months, the tool asks for `--period`.
 2. Tell the owner the folio, total, period and the **path of the capture sheet** to open; they capture it in
    the portal in that order. Don't read the sheet to them: it has the personal data.
 3. A change before capturing (another date or period): `FAC draft … --replace`. To drop it: `FAC discard`.

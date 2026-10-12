@@ -1,11 +1,12 @@
 """facturacion — the exact operations of the invoicing howware (Mexican freelancers, without an app).
 
-The deposits imported from bank statements (by the finanzas-personales howware, through the mxbank adapter)
-become the invoices to issue. Invoices and declaration receipts are read and drafted through the mxsat adapter;
+The deposits in the bank statements (read by the mxbank adapter and stored as the common records that every
+howware sharing the memory imports the same way) become the invoices to issue. Invoices and declaration receipts are read and drafted through the mxsat adapter;
 this tool never opens an XML or a PDF itself.
 
 Commands (JSON on stdout; errors as {"ok": false, "error": {"code", "message"}}):
   setup        load the predicates into the memory and check the adapters
+  import       store mxbank statements in the memory as common records (shared with other howwares)
   brief        what to show at the start of a session: deposits to invoice, drafts to capture, obligations
   client       add or change a client: its mxsat template and how its deposits are recognized
   clients      list clients
@@ -40,7 +41,10 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
-__version__ = "0.1.0"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mxbank_records  # noqa: E402  (verbatim copy from mxbank: the common form of a statement in the memory)
+
+__version__ = "0.2.0"
 HERE = Path(__file__).resolve().parent
 SEED = HERE / "seed.json"
 MIN_MEMORY = (0, 3, 0)
@@ -265,7 +269,7 @@ def deposits(mem: Memory, first: date, last: date) -> list[dict]:
 def one_tx(mem: Memory, key: str) -> dict:
     rows = mem.rows("--event-type", "transaction", "--where", f"key = {key_part(key)}", *TX_COLUMNS)
     if not rows:
-        raise ToolError(f"No bank transaction {key}. Import the statement first (finanzas-personales).")
+        raise ToolError(f"No bank transaction {key}. Import the statement first (FAC import).")
     return tx_row(rows[0])
 
 
@@ -411,11 +415,66 @@ def cmd_setup(mem: Memory, mx: Mxsat, args, today: date) -> dict:
     seed = json.loads(SEED.read_text(encoding="utf-8"))
     version = mx.check_version()
     result = mem.write(args.by, f"facturacion seed v{seed['seed_version']}", "helper_command",
-                       predicates=[{**p, "distinct_from_similar": True} for p in seed["predicates"]])
+                       predicates=[{**p, "distinct_from_similar": True}
+                                   for p in [*seed["predicates"], *mxbank_records.PREDICATES]])
+    mem.run("define-event-type", "--type", "transaction", "--high-volume", "--by", args.by,
+            "--reason", "Imported bank transactions: hundreds per month")
     found = mem.rows("--event-type", "transaction", "--where", "attr:amount > 0", "--column", "key")
     return {"ok": True, "seed_version": seed["seed_version"], "mxsat": version, "deposits_in_memory": len(found),
             "warnings": result.get("warnings", []) + ([] if found else [
-                "No bank deposits in this memory yet: import statements with finanzas-personales first."])}
+                "No bank deposits in this memory yet: import statements first (FAC import)."])}
+
+
+def read_statements(paths: list[str]) -> list[dict]:
+    out = []
+    for path in paths:
+        try:
+            text = (sys.stdin.read() if path == "-" else Path(path).read_text(encoding="utf-8")).strip()
+        except OSError as error:
+            raise ToolError(f"Cannot read {path}: {error.strerror or error}") from error
+        try:
+            docs = [json.loads(text)] if text.startswith("{") and "\n{" not in text else \
+                [json.loads(line) for line in text.splitlines() if line.strip()]
+        except json.JSONDecodeError as error:
+            raise ToolError(f"{path} is not mxbank JSON or NDJSON (line {error.lineno}).") from error
+        for doc in docs:
+            out += doc if isinstance(doc, list) else [doc]
+    return out
+
+
+def current_temporal_facts(mem: Memory, document: dict) -> dict:
+    """When each balance or plan fact in force began, so an older statement does not replace a newer value."""
+    current = {}
+    for subject in mxbank_records.temporal_subjects(document):
+        kind = "account" if subject.startswith("account:") else "installment_plan"
+        columns = [x for pred in sorted(mxbank_records.TEMPORAL) for x in ("--column", f"fact:{pred}/since")]
+        rows = mem.rows("--entity-type", kind, "--where", f"key = {subject}", "--as-of", "2100-01-01", *columns)
+        for pred in mxbank_records.TEMPORAL:
+            if rows and rows[0].get(f"fact:{pred}/since"):
+                current[(subject, pred)] = rows[0][f"fact:{pred}/since"]
+    return current
+
+
+def transaction_keys(items: list) -> int:
+    return sum(1 for i in items if str(i.get("key") if isinstance(i, dict) else i).startswith("TX_"))
+
+
+def cmd_import(mem: Memory, mx: Mxsat, args, today: date) -> dict:
+    documents = []
+    for st in read_statements(args.files):
+        try:
+            documents.append(mxbank_records.memory_document(st, args.by, args.tz))
+        except mxbank_records.RecordsError as error:
+            raise ToolError(str(error)) from error
+    report = []
+    for document, info in sorted(documents, key=lambda d: d[1]["period"][0] or ""):
+        older = mxbank_records.keep_newer(document, current_temporal_facts(mem, document))
+        events = mem.run("write", stdin=document).get("events", {})
+        report.append({"statement_id": info["statement_id"], "account": info["account_name"], "period": info["period"],
+                       "reconciled": info["reconciled"], "transactions_new": transaction_keys(events.get("created", [])),
+                       "transactions_existing": transaction_keys(events.get("existing", [])),
+                       "warnings": info["warnings"], **({"older_than_current": older} if older else {})})
+    return {"ok": True, "statements": report}
 
 
 def cmd_client(mem: Memory, mx: Mxsat, args, today: date) -> dict:
@@ -456,6 +515,21 @@ def cmd_pending(mem: Memory, mx: Mxsat, args, today: date) -> dict:
     return {"ok": True, "from": first.isoformat(), "to": last.isoformat(), "counts": counts, "deposits": items}
 
 
+def rent_period(mem: Memory, tx: str) -> str | None:
+    """The month of rent a deposit covers, when the arrendamiento howware shares the memory and applied it.
+
+    Its reading of a deposit is a rent_applied event (rent_period YYYY-MM, paid_with the transaction): with it, a
+    rent paid early is invoiced for the month it pays, not by the template's fixed rule.
+    """
+    if not mem.run("aggregate", "--event-type", "rent_applied")["total_rows"]:
+        return None
+    periods = sorted({r["attr:rent_period"] for r in mem.rows(
+        "--event-type", "rent_applied", "--where", f"link:paid_with/key = {key_part(tx)}", "--column", "attr:rent_period")})
+    if len(periods) > 1:
+        raise ToolError(f"This deposit pays rent for {', '.join(periods)}: say which month the invoice is for (--period).")
+    return periods[0] if periods else None
+
+
 def cmd_draft(mem: Memory, mx: Mxsat, args, today: date) -> dict:
     tx = one_tx(mem, args.tx)
     if tx["amount_cents"] <= 0:
@@ -477,8 +551,9 @@ def cmd_draft(mem: Memory, mx: Mxsat, args, today: date) -> dict:
     day = parse_day(args.date, "--date") if args.date else today
     call = ["cfdi", "draft", "--template", client["template"], "--total", decimal_text(tx["amount_cents"]),
             "--ref", tx["tx"], "--date", day.isoformat()]
-    if args.period:
-        call += ["--period", args.period]
+    period = args.period or rent_period(mem, tx["tx"])
+    if period:
+        call += ["--period", period]
     if args.folio:
         call += ["--folio", args.folio]
     if args.replace:
@@ -784,6 +859,8 @@ def main() -> None:
         return s
 
     by(sub.add_parser("setup"), source=False)
+    s = by(sub.add_parser("import"), source=False)
+    s.add_argument("files", nargs="+", help="mxbank JSON or NDJSON (extracted with --pseudonym-key-env), or -")
     s = sub.add_parser("brief")
     s.add_argument("--days", type=int, default=62, help="how far back to look for deposits")
     s = by(sub.add_parser("client"))
@@ -838,7 +915,7 @@ def main() -> None:
     s.add_argument("--out", help="also write a summary for the accountant (.md)")
     args = p.parse_args()
 
-    commands = {"setup": cmd_setup, "brief": cmd_brief, "client": cmd_client, "clients": cmd_clients,
+    commands = {"setup": cmd_setup, "import": cmd_import,"brief": cmd_brief, "client": cmd_client, "clients": cmd_clients,
                 "pending": cmd_pending, "draft": cmd_draft, "verify": cmd_verify, "record": cmd_record,
                 "discard": cmd_discard, "ignore": cmd_ignore, "declaration": cmd_declaration,
                 "obligation": cmd_obligation, "payments": cmd_payments, "pay": cmd_pay, "close": cmd_close}

@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/howware/facturacion/actions/workflows/ci.yml"><img src="https://github.com/howware/facturacion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="Version 0.1.0">
+  <img src="https://img.shields.io/badge/version-0.2.0-blue" alt="Version 0.2.0">
   <a href="https://howware.org"><img src="https://img.shields.io/badge/howware-0.2-5a45d6" alt="howware 0.2"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green" alt="Apache 2.0">
@@ -19,8 +19,9 @@
 > monthly invoicing, **with the tax decisions you and your accountant already made**, taken from the invoices you
 > issued. It composes three shared adapters: bank statements ([mxbank](https://github.com/howware/mx-bank-statement-reader)),
 > SAT documents ([mxsat](https://github.com/howware/mx-sat-documents)) and the
-> [memory](https://github.com/howware/long-term-memory-for-AI), and builds on the
-> [finanzas-personales](https://github.com/howware/finanzas-personales) howware, which imports the statements.
+> [memory](https://github.com/howware/long-term-memory-for-AI). It works on its own, or on the same memory as
+> [finanzas-personales](https://github.com/howware/finanzas-personales) and other howwares: a statement is stored
+> once, whichever imports it.
 
 ```text
 › ¿Qué tengo que facturar?
@@ -66,12 +67,14 @@ an authorized provider (PAC) is planned.
 |---|---|
 | Protocol | [`skill/facturacion/SKILL.md`](skill/facturacion/SKILL.md): the monthly cycle, the rules, what to ask, in plain words |
 | Tool | [`facturacion.py`](skill/facturacion/scripts/facturacion.py): matching deposits to clients by your rules, invoice states, obligations and payments to the cent, the month close. It never opens an invoice or a PDF |
-| Adapters | [mxsat](https://github.com/howware/mx-sat-documents) reads and drafts SAT documents; [mxbank](https://github.com/howware/mx-bank-statement-reader) reads statements (through finanzas-personales); the [memory](https://github.com/howware/long-term-memory-for-AI) keeps everything with history |
+| Adapters | [mxsat](https://github.com/howware/mx-sat-documents) reads and drafts SAT documents; [mxbank](https://github.com/howware/mx-bank-statement-reader) reads statements; the [memory](https://github.com/howware/long-term-memory-for-AI) keeps everything with history |
 
 ## Install
 
-It runs in the folder where you already keep your finances with
-[finanzas-personales](https://github.com/howware/finanzas-personales).
+It runs in a folder of your own, or in the one where you already keep your finances with
+[finanzas-personales](https://github.com/howware/finanzas-personales). It needs
+[mxbank](https://github.com/howware/mx-bank-statement-reader) for the statements and
+[project-memory](https://github.com/howware/long-term-memory-for-AI).
 
 ```bash
 uv tool install git+https://github.com/howware/mx-sat-documents

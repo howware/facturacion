@@ -1,7 +1,7 @@
 {
   "howware": "0.2",
   "name": "facturacion",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Invoicing for Mexican freelancers without an app: the deposits in your bank statements become the invoices to issue, checked against what was stamped, through the monthly declaration and its payment.",
   "license": "Apache-2.0",
   "languages": ["en", "es"],
@@ -11,9 +11,6 @@
     {"name": "project-memory", "version": ">=0.3.0", "url": "https://github.com/howware/long-term-memory-for-AI"},
     {"name": "mxsat", "version": ">=0.1.0", "url": "https://github.com/howware/mx-sat-documents"},
     {"name": "mxbank", "version": ">=0.2.0", "url": "https://github.com/howware/mx-bank-statement-reader"}
-  ],
-  "requires": [
-    {"name": "finanzas-personales", "version": ">=0.2.2", "url": "https://github.com/howware/finanzas-personales"}
   ],
   "tools": [{"name": "facturacion.py", "network": false, "dependencies": []}],
   "memory": {"kind": "local-sqlite", "append_only": true, "seed_version": "1"},

@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/howware/facturacion/actions/workflows/ci.yml"><img src="https://github.com/howware/facturacion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/versión-0.1.0-blue" alt="Versión 0.1.0">
+  <img src="https://img.shields.io/badge/versión-0.2.0-blue" alt="Versión 0.2.0">
   <a href="https://howware.org/es/"><img src="https://img.shields.io/badge/howware-0.2-5a45d6" alt="howware 0.2"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/licencia-Apache%202.0-green" alt="Apache 2.0">
@@ -20,8 +20,9 @@
 > tomadas de las facturas que emitiste. Combina tres adaptadores compartidos: estados de cuenta
 > ([mxbank](https://github.com/howware/mx-bank-statement-reader)), documentos del SAT
 > ([mxsat](https://github.com/howware/mx-sat-documents)) y la
-> [memoria](https://github.com/howware/long-term-memory-for-AI), y se apoya en el howware
-> [finanzas-personales](https://github.com/howware/finanzas-personales), que importa los estados de cuenta.
+> [memoria](https://github.com/howware/long-term-memory-for-AI). Funciona solo, o sobre la misma memoria que
+> [finanzas-personales](https://github.com/howware/finanzas-personales) y otros howwares: un estado de cuenta se
+> guarda una sola vez, lo importe quien lo importe.
 
 ```text
 › ¿Qué tengo que facturar?
@@ -67,12 +68,14 @@ proveedor autorizado (PAC) está planeado.
 |---|---|
 | Protocolo | [`skill/facturacion/SKILL.md`](skill/facturacion/SKILL.md): el ciclo del mes, las reglas, qué preguntar, en palabras claras |
 | Herramienta | [`facturacion.py`](skill/facturacion/scripts/facturacion.py): reconocer los depósitos de cada cliente según tus reglas, estados de las facturas, obligaciones y pagos al centavo, el cierre del mes. Nunca abre una factura ni un PDF |
-| Adaptadores | [mxsat](https://github.com/howware/mx-sat-documents) lee y prepara documentos del SAT; [mxbank](https://github.com/howware/mx-bank-statement-reader) lee los estados de cuenta (a través de finanzas-personales); la [memoria](https://github.com/howware/long-term-memory-for-AI) guarda todo con historia |
+| Adaptadores | [mxsat](https://github.com/howware/mx-sat-documents) lee y prepara documentos del SAT; [mxbank](https://github.com/howware/mx-bank-statement-reader) lee los estados de cuenta; la [memoria](https://github.com/howware/long-term-memory-for-AI) guarda todo con historia |
 
 ## Instalación
 
-Corre en la carpeta donde ya llevas tus finanzas con
-[finanzas-personales](https://github.com/howware/finanzas-personales).
+Corre en una carpeta propia, o en la que ya llevas tus finanzas con
+[finanzas-personales](https://github.com/howware/finanzas-personales). Necesita
+[mxbank](https://github.com/howware/mx-bank-statement-reader) para los estados de cuenta y
+[project-memory](https://github.com/howware/long-term-memory-for-AI).
 
 ```bash
 uv tool install git+https://github.com/howware/mx-sat-documents

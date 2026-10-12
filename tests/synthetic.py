@@ -100,6 +100,8 @@ TRANSACTIONS = [
     ("TX_other_out", "2026-10-09", -123500, "card_purchase", "account:ACC_d1", "TIENDA"),
 ]
 
+KEYS = {t[0] for t in TRANSACTIONS}
+
 
 def finanzas_write(by: str) -> dict:
     return {
