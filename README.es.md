@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/howware/facturacion/actions/workflows/ci.yml"><img src="https://github.com/howware/facturacion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/versión-0.2.0-blue" alt="Versión 0.2.0">
+  <img src="https://img.shields.io/badge/versión-0.2.1-blue" alt="Versión 0.2.1">
   <a href="https://howware.org/es/"><img src="https://img.shields.io/badge/howware-0.2-5a45d6" alt="howware 0.2"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/licencia-Apache%202.0-green" alt="Apache 2.0">
@@ -110,8 +110,7 @@ Luego di: *«Quiero facturar desde aquí.»* El agente te pedirá la última fac
 - **No es asesoría fiscal.** El tratamiento fiscal viene de tus facturas pasadas; tu contador tiene la última
   palabra.
 - **No hay notificaciones:** los vencimientos aparecen cuando abres una conversación.
-- **Todavía no se ha probado en una conversación real** en ningún anfitrión; `howware.json` solo lista los
-  anfitriones probados.
+- **Probado en una conversación real solo en Claude Code**; Codex se agregará a `howware.json` cuando se pruebe.
 
 ## Licencia
 

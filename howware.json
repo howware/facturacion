@@ -1,11 +1,11 @@
 {
   "howware": "0.2",
   "name": "facturacion",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Invoicing for Mexican freelancers without an app: the deposits in your bank statements become the invoices to issue, checked against what was stamped, through the monthly declaration and its payment.",
   "license": "Apache-2.0",
   "languages": ["en", "es"],
-  "hosts": [],
+  "hosts": ["claude-code"],
   "skill": "skill/facturacion",
   "adapters": [
     {"name": "project-memory", "version": ">=0.3.0", "url": "https://github.com/howware/long-term-memory-for-AI"},

@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/howware/facturacion/actions/workflows/ci.yml"><img src="https://github.com/howware/facturacion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/version-0.2.0-blue" alt="Version 0.2.0">
+  <img src="https://img.shields.io/badge/version-0.2.1-blue" alt="Version 0.2.1">
   <a href="https://howware.org"><img src="https://img.shields.io/badge/howware-0.2-5a45d6" alt="howware 0.2"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green" alt="Apache 2.0">
@@ -108,7 +108,7 @@ Then say: *"Quiero facturar desde aquí."* The agent will ask for the last real 
 - The memory and the private store are not encrypted.
 - **It is not tax advice.** The tax treatment comes from your past invoices; your accountant has the last word.
 - **No push notifications:** due dates appear when you open a conversation.
-- **Not yet tested in a real conversation** on any host; `howware.json` lists hosts only once tested.
+- **Tested in a real conversation on Claude Code only**; Codex will be listed in `howware.json` once tested.
 
 ## Development
 

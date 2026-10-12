@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- `howware.json` lists `claude-code` in `hosts`: used in a real conversation, with the owner's invoices, on Claude
+  Code. Codex will be added once tested.
+
 ## 0.2.0
 
 - **No longer requires finanzas-personales** (howware specification 0.2 §8, shared memory). `FAC import` stores
